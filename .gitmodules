@@ -1,0 +1,3 @@
+[submodule "motion-detection"]
+	path = motion-detection
+	url = git@github.com:cedricve/motion-detection.git

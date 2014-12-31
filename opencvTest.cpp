@@ -30,12 +30,22 @@ static vector<Point> myPoint;
 static Point p1,p2;
 int win_count=0;
 
-Mat frame;
+Mat next_frame;
+Mat current_frame;
+Mat prev_frame;
+Mat d1;
+Mat d2;
+Mat result;
+
+
+
+
+
 
 void circle_update(){
   int count;
   for (vector<Point>::iterator it = myPoint.begin(); it!=myPoint.end();++it){
-    circle(frame,*it,1,Scalar(255,255,255));
+    circle(result,*it,1,Scalar(255,255,255));
     cout<<"updated: "<<count<<endl;
     count++;
   }
@@ -53,19 +63,20 @@ static void cbMouse(int event,int x, int y, int flags, void* userdata){
     p2=Point(x,y);
     p2_set=false;
   }else if (event==EVENT_MOUSEMOVE && flags==EVENT_FLAG_LBUTTON){
-    if(x>frame.size().width){
-      x=frame.size().width;
+    if(x>result.size().width){
+      x=result.size().width;
     }
     else if(x<0){
       x=0;
     }
-    if(y>frame.size().height){
-      y=frame.size().height;
+    if(y>result.size().height){
+      y=result.size().height;
     }
     else if(y<0){
       y=0;
     }
     p2=Point(x,y);
+Mat d2
     p2_set=true;
    
     
@@ -73,7 +84,7 @@ static void cbMouse(int event,int x, int y, int flags, void* userdata){
   } 
   else if(event==EVENT_LBUTTONUP && p2_set){
     win_count++;
-    Mat newSelect=frame(Rect(p1,p2));
+    Mat newSelect=result(Rect(p1,p2));
     char window_name[20];
     sprintf(window_name,"This is selection: %d",win_count);
     imshow(window_name,newSelect);
@@ -96,6 +107,8 @@ int main()
     Mat corImg;
     Mat surImg;
     Mat tmp_img;
+    
+    
 
 
     std::string valueText;
@@ -111,13 +124,26 @@ int main()
     cap.set(CV_CAP_PROP_FRAME_WIDTH,CAP_WIDTH);
     cap.set(CV_CAP_PROP_FRAME_HEIGHT,CAP_HEIGHT);
     namedWindow(origin_w,CV_WINDOW_AUTOSIZE);
-    namedWindow(cor_w,CV_WINDOW_AUTOSIZE);
+    // namedWindow(cor_w,CV_WINDOW_AUTOSIZE);
     setMouseCallback(origin_w,cbMouse,0);
     for(;;){
       
-      
       createTrackbar("param","corImg_w",&thred,1000);
-      cap >> frame;
+      current_frame.copyTo(prev_frame);
+      next_frame.copyTo(current_frame);
+      
+      cap >> next_frame;
+      
+      absdiff(prev_frame,current_frame,d1);
+      absdiff(current_frame,next_frame,d2);
+      bitwise_and(d1,d2,result);
+
+      threshold(result,result,35,255,CV_THRESH_BINARY);
+
+
+
+      // tmp_img=!tmp_img;
+
       // cvtColor(frame,frame,CV_BGR2GRAY);
       // cornerHarris(frame,corImg,3,3,0.001);
       // threshold(corImg,corImg,0.0001,255,THRESH_BINARY);
@@ -129,7 +155,7 @@ int main()
       // block[3]=Mat(blkCorImg,Rect(CAP_WIDTH/2-1,CAP_HEIGHT/2,CAP_WIDTH/2,CAP_HEIGHT/2));
       
       // duration=( std::clock() - start_clk ) / (double) CLOCKS_PER_SEC;
-      // std::cout<<"Frame T is: cor_w"<<duration<<std::endl;
+      // std::cout<<"Framtmp_imge T is: cor_w"<<duration<<std::endl;
       // start_clk=std::clock();
       
       // vector<KeyPoint> keypoints;
@@ -170,8 +196,8 @@ int main()
         // DrawMatchesFlags::DRAW_RICH_KEYPOINTS);
 
       // circle_update();
-      rectangle(frame,p1,p2,Scalar(255,255,255));
-      imshow(origin_w,frame);
+      rectangle(result,p1,p2,Scalar(255,255,255));
+      imshow(origin_w,result);
        // imshow("Block Image0",blkCorImg);
       // imshow("Canny Image",canImg);
       // imshow(cor_w,corImg);

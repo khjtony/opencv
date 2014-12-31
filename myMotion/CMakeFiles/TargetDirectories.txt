@@ -1,0 +1,1 @@
+/home/khjtony/Documents/workspace/opencv/motion-detection/motion_src/CMakeFiles/motion.dir
